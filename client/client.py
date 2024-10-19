@@ -238,7 +238,11 @@ class CollaborativeEditor:
     def get_cursor_index(self):
         try:
             position = self.text.index(tk.INSERT)
-            return self.text.count('1.0', position, 'chars')[0]
+            count = self.text.count('1.0', position, 'chars')
+            if count:
+                return count[0]
+            else:
+                return 0  # Return 0 if count is None or empty
         except Exception as e:
             print(f"Error in get_cursor_index: {e}")
             return 0
