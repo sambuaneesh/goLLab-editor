@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option go_package = "./document";
+package document;
+
+import "google/protobuf/timestamp.proto";
+
+service DocumentService {
+  rpc Collaborate(stream Change) returns (stream Change) {}
+}
+
+message Change {
+  string client_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  OperationType operation = 3;
+  int32 position = 4;
+  string character = 5; // Single character, empty for delete, or full content for FULL_CONTENT operation
+  int32 cursor_position = 6; // Cursor position after the change
+}
+
+enum OperationType {
+  INSERT = 0;
+  DELETE = 1;
+  REQUEST_CONTENT = 2;
+  FULL_CONTENT = 3;
+}
