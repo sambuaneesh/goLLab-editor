@@ -189,7 +189,18 @@ class CollaborativeEditor:
                     cursor_position=position - 1
                 )
                 self.send_change(change)
-        elif len(event.char) == 1 and event.char.isprintable():
+        elif event.keysym == 'Return':
+            position = self.get_cursor_index()
+            change = pb.Change(
+                client_id=self.client_id,
+                timestamp=Timestamp(seconds=int(time.time())),
+                operation=pb.OperationType.INSERT,
+                position=position,
+                character='\n',
+                cursor_position=position + 1
+            )
+            self.send_change(change)
+        elif len(event.char) == 1:
             position = self.get_cursor_index()
             change = pb.Change(
                 client_id=self.client_id,
@@ -217,8 +228,7 @@ class CollaborativeEditor:
     def get_cursor_index(self):
         try:
             position = self.text.index(tk.INSERT)
-            line, column = map(int, position.split('.'))
-            return sum(len(self.text.get(f"{i}.0", f"{i}.end")) for i in range(1, line)) + column
+            return self.text.count('1.0', position, 'chars')[0]
         except Exception as e:
             print(f"Error in get_cursor_index: {e}")
             return 0
@@ -265,9 +275,10 @@ class CollaborativeEditor:
                 self.document_content[change.position + 1:]
             )
         self.text.config(state='normal')
+        self.update_cursor_position()
 
     def index_to_position(self, index):
-        return f"1.0 + {index} chars"
+        return self.text.index(f"1.0 + {index} chars")
 
     def update_status(self, message):
         self.status_bar.config(text=message)
