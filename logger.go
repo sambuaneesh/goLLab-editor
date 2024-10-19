@@ -11,23 +11,23 @@ import (
 	"google.golang.org/grpc"
 )
 
-type loggerServer struct {
+type LoggerServer struct {
 	pb.UnimplementedLoggingServiceServer
 	logFile *os.File
 }
 
-func newLoggerServer(logFilePath string) *loggerServer {
+func NewLoggerServer(logFilePath string) *LoggerServer {
 	file, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
 
-	return &loggerServer{
+	return &LoggerServer{
 		logFile: file,
 	}
 }
 
-func (s *loggerServer) LogChange(ctx context.Context, change *pb.Change) (*pb.LogResponse, error) {
+func (s *LoggerServer) LogChange(ctx context.Context, change *pb.Change) (*pb.LogResponse, error) {
 	logEntry := fmt.Sprintf("Client: %s, Operation: %s, Position: %d, Character: %s, Cursor: %d, Timestamp: %s\n",
 		change.ClientId,
 		change.Operation,
@@ -52,7 +52,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterLoggingServiceServer(grpcServer, newLoggerServer("document_changes.log"))
+	pb.RegisterLoggingServiceServer(grpcServer, NewLoggerServer("document_changes.log"))
 
 	log.Println("Logger is running on port 50052...")
 	if err := grpcServer.Serve(lis); err != nil {

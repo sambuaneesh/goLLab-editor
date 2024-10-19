@@ -8,6 +8,8 @@ import (
 	"sync"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -33,44 +35,39 @@ func newServer(loggerAddress string) *server {
 }
 
 func (s *server) Collaborate(stream pb.DocumentService_CollaborateServer) error {
-	// Receive initial message with client_id
-	firstChange, err := stream.Recv()
-	if err != nil {
-		return err
-	}
-	clientID := firstChange.ClientId
-	log.Printf("Client connected: %s", clientID)
-
-	s.mu.Lock()
-	s.clients[clientID] = stream
-	s.mu.Unlock()
-
-	// Send full document content to the new client immediately
-	s.sendFullContent(clientID)
-
+	var clientID string
 	defer func() {
-		s.mu.Lock()
-		delete(s.clients, clientID)
-		s.mu.Unlock()
-		log.Printf("Client disconnected: %s", clientID)
+		if clientID != "" {
+			s.mu.Lock()
+			delete(s.clients, clientID)
+			s.mu.Unlock()
+			log.Printf("Client disconnected: %s", clientID)
+		}
 	}()
 
-	// Listen for changes from the client
 	for {
 		change, err := stream.Recv()
 		if err != nil {
-			log.Printf("Error receiving from client %s: %v", clientID, err)
+			if status.Code(err) == codes.Canceled {
+				return nil
+			}
 			return err
 		}
 
+		if clientID == "" {
+			clientID = change.ClientId
+			s.mu.Lock()
+			s.clients[clientID] = stream
+			s.mu.Unlock()
+			log.Printf("Client connected: %s", clientID)
+			s.sendFullContent(clientID)
+		}
+
 		if change.Operation == pb.OperationType_REQUEST_CONTENT {
-			// Send full document content to the client
 			s.sendFullContent(clientID)
 		} else {
-			// Apply the change to the document
 			s.applyChange(change)
-
-			// Broadcast the change to other clients
+			s.logChange(change)
 			s.broadcastChange(change, clientID)
 		}
 	}
