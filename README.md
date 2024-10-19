@@ -2,6 +2,11 @@
 
 This project is a collaborative document editor with a client-server architecture using gRPC for communication.
 
+## Preview
+| Terminal Preview | Client Preview | Logs Preview |
+|-------------------|-----------------|---------------|
+| ![alt text](preview/image.png) | ![alt text](preview/image-1.png) | ![alt text](preview/image-2.png) |
+
 ## Quick Start
 
 To quickly build and run the project:
