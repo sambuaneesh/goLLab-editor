@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x64ocument.proto\x12\x08\x64ocument\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb4\x01\n\x06\x43hange\x12\x11\n\tclient_id\x18\x01 \x01(\t\x12-\n\ttimestamp\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12*\n\toperation\x18\x03 \x01(\x0e\x32\x17.document.OperationType\x12\x10\n\x08position\x18\x04 \x01(\x05\x12\x11\n\tcharacter\x18\x05 \x01(\t\x12\x17\n\x0f\x63ursor_position\x18\x06 \x01(\x05*N\n\rOperationType\x12\n\n\x06INSERT\x10\x00\x12\n\n\x06\x44\x45LETE\x10\x01\x12\x13\n\x0fREQUEST_CONTENT\x10\x02\x12\x10\n\x0c\x46ULL_CONTENT\x10\x03\x32J\n\x0f\x44ocumentService\x12\x37\n\x0b\x43ollaborate\x12\x10.document.Change\x1a\x10.document.Change\"\x00(\x01\x30\x01\x42\x0cZ\n./documentb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x64ocument.proto\x12\x08\x64ocument\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb4\x01\n\x06\x43hange\x12\x11\n\tclient_id\x18\x01 \x01(\t\x12-\n\ttimestamp\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12*\n\toperation\x18\x03 \x01(\x0e\x32\x17.document.OperationType\x12\x10\n\x08position\x18\x04 \x01(\x05\x12\x11\n\tcharacter\x18\x05 \x01(\t\x12\x17\n\x0f\x63ursor_position\x18\x06 \x01(\x05\"\x1e\n\x0bLogResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08*N\n\rOperationType\x12\n\n\x06INSERT\x10\x00\x12\n\n\x06\x44\x45LETE\x10\x01\x12\x13\n\x0fREQUEST_CONTENT\x10\x02\x12\x10\n\x0c\x46ULL_CONTENT\x10\x03\x32J\n\x0f\x44ocumentService\x12\x37\n\x0b\x43ollaborate\x12\x10.document.Change\x1a\x10.document.Change\"\x00(\x01\x30\x01\x32H\n\x0eLoggingService\x12\x36\n\tLogChange\x12\x10.document.Change\x1a\x15.document.LogResponse\"\x00\x42\x0cZ\n./documentb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,10 +33,14 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'document_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z\n./document'
-  _globals['_OPERATIONTYPE']._serialized_start=244
-  _globals['_OPERATIONTYPE']._serialized_end=322
+  _globals['_OPERATIONTYPE']._serialized_start=276
+  _globals['_OPERATIONTYPE']._serialized_end=354
   _globals['_CHANGE']._serialized_start=62
   _globals['_CHANGE']._serialized_end=242
-  _globals['_DOCUMENTSERVICE']._serialized_start=324
-  _globals['_DOCUMENTSERVICE']._serialized_end=398
+  _globals['_LOGRESPONSE']._serialized_start=244
+  _globals['_LOGRESPONSE']._serialized_end=274
+  _globals['_DOCUMENTSERVICE']._serialized_start=356
+  _globals['_DOCUMENTSERVICE']._serialized_end=430
+  _globals['_LOGGINGSERVICE']._serialized_start=432
+  _globals['_LOGGINGSERVICE']._serialized_end=504
 # @@protoc_insertion_point(module_scope)

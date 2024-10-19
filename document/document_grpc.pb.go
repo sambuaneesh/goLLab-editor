@@ -113,3 +113,105 @@ var DocumentService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Metadata: "document.proto",
 }
+
+const (
+	LoggingService_LogChange_FullMethodName = "/document.LoggingService/LogChange"
+)
+
+// LoggingServiceClient is the client API for LoggingService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type LoggingServiceClient interface {
+	LogChange(ctx context.Context, in *Change, opts ...grpc.CallOption) (*LogResponse, error)
+}
+
+type loggingServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewLoggingServiceClient(cc grpc.ClientConnInterface) LoggingServiceClient {
+	return &loggingServiceClient{cc}
+}
+
+func (c *loggingServiceClient) LogChange(ctx context.Context, in *Change, opts ...grpc.CallOption) (*LogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LogResponse)
+	err := c.cc.Invoke(ctx, LoggingService_LogChange_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// LoggingServiceServer is the server API for LoggingService service.
+// All implementations must embed UnimplementedLoggingServiceServer
+// for forward compatibility.
+type LoggingServiceServer interface {
+	LogChange(context.Context, *Change) (*LogResponse, error)
+	mustEmbedUnimplementedLoggingServiceServer()
+}
+
+// UnimplementedLoggingServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedLoggingServiceServer struct{}
+
+func (UnimplementedLoggingServiceServer) LogChange(context.Context, *Change) (*LogResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LogChange not implemented")
+}
+func (UnimplementedLoggingServiceServer) mustEmbedUnimplementedLoggingServiceServer() {}
+func (UnimplementedLoggingServiceServer) testEmbeddedByValue()                        {}
+
+// UnsafeLoggingServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to LoggingServiceServer will
+// result in compilation errors.
+type UnsafeLoggingServiceServer interface {
+	mustEmbedUnimplementedLoggingServiceServer()
+}
+
+func RegisterLoggingServiceServer(s grpc.ServiceRegistrar, srv LoggingServiceServer) {
+	// If the following call pancis, it indicates UnimplementedLoggingServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&LoggingService_ServiceDesc, srv)
+}
+
+func _LoggingService_LogChange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Change)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoggingServiceServer).LogChange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoggingService_LogChange_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoggingServiceServer).LogChange(ctx, req.(*Change))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// LoggingService_ServiceDesc is the grpc.ServiceDesc for LoggingService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var LoggingService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "document.LoggingService",
+	HandlerType: (*LoggingServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "LogChange",
+			Handler:    _LoggingService_LogChange_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "document.proto",
+}

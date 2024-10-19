@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	pb "server/document"
@@ -12,15 +13,22 @@ import (
 
 type server struct {
 	pb.UnimplementedDocumentServiceServer
-	mu       sync.Mutex
-	clients  map[string]pb.DocumentService_CollaborateServer
-	document []rune
+	mu           sync.Mutex
+	clients      map[string]pb.DocumentService_CollaborateServer
+	document     []rune
+	loggerClient pb.LoggingServiceClient
 }
 
-func newServer() *server {
+func newServer(loggerAddress string) *server {
+	conn, err := grpc.Dial(loggerAddress, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to connect to logger: %v", err)
+	}
+
 	return &server{
-		clients:  make(map[string]pb.DocumentService_CollaborateServer),
-		document: []rune{},
+		clients:      make(map[string]pb.DocumentService_CollaborateServer),
+		document:     []rune{},
+		loggerClient: pb.NewLoggingServiceClient(conn),
 	}
 }
 
@@ -61,9 +69,6 @@ func (s *server) Collaborate(stream pb.DocumentService_CollaborateServer) error 
 		} else {
 			// Apply the change to the document
 			s.applyChange(change)
-
-			// Log the change
-			s.logChange(change)
 
 			// Broadcast the change to other clients
 			s.broadcastChange(change, clientID)
@@ -113,6 +118,9 @@ func (s *server) applyChange(change *pb.Change) {
 			s.document = append(s.document[:position], s.document[position+1:]...)
 		}
 	}
+
+	// Log the change
+	s.logChange(change)
 }
 
 func (s *server) broadcastChange(change *pb.Change, senderID string) {
@@ -130,8 +138,10 @@ func (s *server) broadcastChange(change *pb.Change, senderID string) {
 }
 
 func (s *server) logChange(change *pb.Change) {
-	// For simplicity, log to console. You can write to a file or external logger.
-	log.Printf("Change from client %s: %v", change.ClientId, change)
+	_, err := s.loggerClient.LogChange(context.Background(), change)
+	if err != nil {
+		log.Printf("Error logging change: %v", err)
+	}
 }
 
 func main() {
@@ -141,7 +151,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterDocumentServiceServer(grpcServer, newServer())
+	pb.RegisterDocumentServiceServer(grpcServer, newServer("localhost:50052"))
 
 	log.Println("Server is running on port 50051...")
 	if err := grpcServer.Serve(lis); err != nil {

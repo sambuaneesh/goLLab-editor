@@ -9,13 +9,21 @@ service DocumentService {
   rpc Collaborate(stream Change) returns (stream Change) {}
 }
 
+service LoggingService {
+  rpc LogChange(Change) returns (LogResponse) {}
+}
+
 message Change {
   string client_id = 1;
   google.protobuf.Timestamp timestamp = 2;
   OperationType operation = 3;
   int32 position = 4;
-  string character = 5; // Single character, empty for delete, or full content for FULL_CONTENT operation
-  int32 cursor_position = 6; // Cursor position after the change
+  string character = 5;
+  int32 cursor_position = 6;
+}
+
+message LogResponse {
+  bool success = 1;
 }
 
 enum OperationType {
