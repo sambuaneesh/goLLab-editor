@@ -15,10 +15,11 @@ import (
 
 type server struct {
 	pb.UnimplementedDocumentServiceServer
-	mu           sync.Mutex
+	mu           sync.RWMutex
 	clients      map[string]pb.DocumentService_CollaborateServer
 	document     []rune
 	loggerClient pb.LoggingServiceClient
+	changeChan   chan *pb.Change
 }
 
 func newServer(loggerAddress string) *server {
@@ -27,10 +28,22 @@ func newServer(loggerAddress string) *server {
 		log.Fatalf("Failed to connect to logger: %v", err)
 	}
 
-	return &server{
+	s := &server{
 		clients:      make(map[string]pb.DocumentService_CollaborateServer),
 		document:     []rune{},
 		loggerClient: pb.NewLoggingServiceClient(conn),
+		changeChan:   make(chan *pb.Change, 100), // buffered channel => avoid blocking
+	}
+
+	go s.processChanges() // start thread to process changes
+	return s
+}
+
+func (s *server) processChanges() {
+	for change := range s.changeChan {
+		s.applyChange(change)
+		s.logChange(change)
+		s.broadcastChange(change, change.ClientId)
 	}
 }
 
@@ -66,17 +79,15 @@ func (s *server) Collaborate(stream pb.DocumentService_CollaborateServer) error 
 		if change.Operation == pb.OperationType_REQUEST_CONTENT {
 			s.sendFullContent(clientID)
 		} else {
-			s.applyChange(change)
-			s.logChange(change) // Log the change only once
-			s.broadcastChange(change, clientID)
+			s.changeChan <- change // send to process thread
 		}
 	}
 }
 
 func (s *server) sendFullContent(clientID string) {
-	s.mu.Lock()
+	s.mu.RLock()
 	content := string(s.document)
-	s.mu.Unlock()
+	s.mu.RUnlock()
 
 	change := &pb.Change{
 		ClientId:       "server",
@@ -115,13 +126,11 @@ func (s *server) applyChange(change *pb.Change) {
 			s.document = append(s.document[:position], s.document[position+1:]...)
 		}
 	}
-
-	// Removed the duplicate log call here
 }
 
 func (s *server) broadcastChange(change *pb.Change, senderID string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	for clientID, clientStream := range s.clients {
 		if clientID != senderID {

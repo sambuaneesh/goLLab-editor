@@ -5,7 +5,15 @@ This project is a collaborative document editor with a client-server architectur
 ## Preview
 | Terminal Preview | Client Preview | Logs Preview |
 |-------------------|-----------------|---------------|
-| ![alt text](preview/image.png) | ![alt text](preview/image-1.png) | ![alt text](preview/image-2.png) |
+| ![alt text](docs/preview/image.png) | ![alt text](docs/preview/image-1.png) | ![alt text](docs/preview/image-2.png) |
+
+## Quick Navigation
+
+- [PROBLEM.md](docs/PROBLEM.md): Original problem statement
+- [REPORT.md](docs/REPORT.md): Project report
+- [STRUCTURE.md](docs/STRUCTURE.md): Project structure
+- [Stable Release](https://github.com/sambuaneesh/goLLab-editor/releases/tag/v1): Download the stable release
+- [Quick Start](#quick-start): Instructions for running the latest version
 
 ## Quick Start
 
