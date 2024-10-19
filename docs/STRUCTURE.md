@@ -1,5 +1,6 @@
 # Project Structure
 
+```
 project_root/
 │
 ├── client/
@@ -23,6 +24,7 @@ project_root/
 ├── README.md
 ├── toBuild.sh
 └── Makefile
+```
 
 ## Explanation of Structure
 
