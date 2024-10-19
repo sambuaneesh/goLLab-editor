@@ -15,7 +15,7 @@ import document_pb2_grpc as pb_grpc
 class CollaborativeEditor:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("🤝 gOLLAB Editor")
+        self.root.title("🤝 goLLab Editor")
         self.root.geometry("800x600")
         
         # Configure styles
