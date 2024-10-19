@@ -1,2 +1,4 @@
 __pycache__/
 venv/
+document_changes.log
+run-*

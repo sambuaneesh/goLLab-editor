@@ -11,6 +11,7 @@ import document_pb2 as pb
 import document_pb2_grpc as pb_grpc
 
 
+
 class CollaborativeEditor:
     def __init__(self):
         self.root = tk.Tk()
