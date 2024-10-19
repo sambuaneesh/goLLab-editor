@@ -67,7 +67,7 @@ func (s *server) Collaborate(stream pb.DocumentService_CollaborateServer) error 
 			s.sendFullContent(clientID)
 		} else {
 			s.applyChange(change)
-			s.logChange(change)
+			s.logChange(change) // Log the change only once
 			s.broadcastChange(change, clientID)
 		}
 	}
@@ -116,8 +116,7 @@ func (s *server) applyChange(change *pb.Change) {
 		}
 	}
 
-	// Log the change
-	s.logChange(change)
+	// Removed the duplicate log call here
 }
 
 func (s *server) broadcastChange(change *pb.Change, senderID string) {
