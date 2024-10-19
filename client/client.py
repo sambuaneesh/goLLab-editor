@@ -136,20 +136,27 @@ class CollaborativeEditor:
         messagebox.showinfo("About", "gOLLAB Editor\nVersion 1.0\nPowered by gRPC, golang, and py-tkinter.")
 
     def connect_to_server(self):
-        while True:
-            try:
-                self.change_stream = self.stub.Collaborate(self.change_generator())
-                self.connected = True
-                self.update_status("Connected to server")
-                self.text.config(state='normal')
-                self.request_initial_content()
-                self.connection_event.set()
-                return
-            except grpc.RpcError as e:
-                self.update_status(f"Failed to connect to server: {e}")
-                self.connected = False
-                self.text.config(state='disabled')
-                time.sleep(5)
+        try:
+            self.change_stream = self.stub.Collaborate(self.change_generator())
+            self.connected = True
+            self.update_status("Connected to server")
+            self.enable_editing()
+            self.request_initial_content()
+            self.connection_event.set()
+        except grpc.RpcError as e:
+            self.handle_disconnection(f"Failed to connect to server: {e}")
+
+    def handle_disconnection(self, error_message):
+        self.connected = False
+        self.update_status("Disconnected")
+        self.disable_editing()
+        self.connection_event.clear()
+
+    def enable_editing(self):
+        self.text.config(state='normal')
+
+    def disable_editing(self):
+        self.text.config(state='disabled')
 
     def request_initial_content(self):
         initial_request = pb.Change(
@@ -177,6 +184,9 @@ class CollaborativeEditor:
                 time.sleep(0.01)
 
     def on_key_press(self, event):
+        if not self.connected:
+            return 'break'  # Prevent default behavior if disconnected
+        
         if event.keysym == 'BackSpace':
             position = self.get_cursor_index()
             if position > 0:
@@ -217,7 +227,7 @@ class CollaborativeEditor:
             with self.lock:
                 self.changes.append(change)
         else:
-            self.pending_changes.append(change)
+            self.update_status("Cannot send changes: Disconnected from server")
 
     def on_key_release(self, event):
         self.update_cursor_position()
@@ -234,8 +244,8 @@ class CollaborativeEditor:
             return 0
 
     def receive_changes(self):
-        self.connection_event.wait()  # Wait until connected
         while True:
+            self.connection_event.wait()  # Wait until connected
             try:
                 for change in self.change_stream:
                     if change.operation == pb.OperationType.FULL_CONTENT:
@@ -243,12 +253,13 @@ class CollaborativeEditor:
                     elif change.client_id != self.client_id:
                         self.root.after(0, self.apply_change, change)
             except grpc.RpcError as e:
-                self.update_status(f"RPC error: {e}")
-                self.connected = False
-                self.text.config(state='disabled')
-                self.connection_event.clear()
-                self.connect_to_server()
-                self.connection_event.wait()
+                self.root.after(0, self.handle_disconnection, "Disconnected")
+            except Exception as e:
+                self.root.after(0, self.handle_disconnection, "Disconnected")
+            
+            # Wait before attempting to reconnect
+            time.sleep(5)
+            self.root.after(0, self.connect_to_server)
 
     def update_full_content(self, content):
         self.text.config(state='normal')
@@ -282,8 +293,20 @@ class CollaborativeEditor:
 
     def update_status(self, message):
         self.status_bar.config(text=message)
+        if message == "Disconnected":
+            self.status_bar.config(foreground='red')
+            self.update_cursor_position()  # Update cursor position display
+        elif message == "Connected":
+            self.status_bar.config(foreground='green')
+            self.update_cursor_position()  # Update cursor position display
+        else:
+            self.status_bar.config(foreground='black')
 
     def update_cursor_position(self, event=None):
+        if not self.connected:
+            self.status_bar.config(text="Disconnected")
+            return
+
         try:
             position = self.text.index(tk.INSERT)
             line, column = position.split('.')
